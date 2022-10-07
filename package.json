@@ -1,0 +1,30 @@
+{
+  "name": "@browser/connect",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": ["lib"],
+  "license": "MIT",
+  "homepage": "https://github.com/balaganapathyparthiban/browse-connect#readme",
+  "keywords": [],
+  "scripts": {
+    "start": "tsc --watch",
+    "build": "tsc --build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balaganapathyparthiban/browse-connect.git"
+  },
+  "author": {
+    "name": "Bala Ganapathy Parthiban",
+    "email": "balaganapathy.parthiban@gmail.com",
+    "url": "https://balaganapathy.dev"
+  },
+  "bugs": {
+    "url": "https://github.com/balaganapathyparthiban/browse-connect/issues"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.4"
+  }
+}
