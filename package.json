@@ -6,7 +6,7 @@
   "types": "lib/index.d.ts",
   "files": ["lib"],
   "license": "MIT",
-  "homepage": "https://github.com/balaganapathyparthiban/browse-connect#readme",
+  "homepage": "https://github.com/balaganapathyparthiban/browser-connect#readme",
   "keywords": [],
   "scripts": {
     "start": "tsc --watch",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/balaganapathyparthiban/browse-connect.git"
+    "url": "git+https://github.com/balaganapathyparthiban/browser-connect.git"
   },
   "author": {
     "name": "Bala Ganapathy Parthiban",
@@ -22,7 +22,7 @@
     "url": "https://balaganapathy.dev"
   },
   "bugs": {
-    "url": "https://github.com/balaganapathyparthiban/browse-connect/issues"
+    "url": "https://github.com/balaganapathyparthiban/browser-connect/issues"
   },
   "devDependencies": {
     "typescript": "^4.8.4"
