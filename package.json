@@ -11,7 +11,7 @@
   "homepage": "https://github.com/balaganapathyparthiban/browsernet#readme",
   "keywords": [],
   "scripts": {
-    "start": "tsc --watch",
+    "start": "npm link && tsc --watch",
     "build": "tsc --build"
   },
   "repository": {
