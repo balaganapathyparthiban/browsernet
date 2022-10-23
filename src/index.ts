@@ -92,7 +92,6 @@ class BrowsernetRTC {
 	}
 	private peerConnection: RTCPeerConnection
 	private dataChannel: RTCDataChannel
-	private iceCandidate: RTCIceCandidate[] = []
 	private connectionID: string | undefined
 	private sseSession: EventSource | undefined
 
@@ -114,6 +113,7 @@ class BrowsernetRTC {
 		 */
 		this.dataChannel.addEventListener('open', event => {
 			console.log('data channel open')
+			this.sseSession?.close()
 		});
 
 		this.peerConnection.addEventListener('connectionstatechange', event => {
@@ -153,17 +153,14 @@ class BrowsernetRTC {
 					break
 				}
 				case TYPE_OFFER: {
-					console.log(data?.payload, 'OFFER')
 					this.createAnswer(data?.payload)
 					break
 				}
 				case TYPE_ANWSER: {
-					console.log(data?.payload, 'ANSWER')
 					this.acceptAnswer(data?.payload)
 					break
 				}
 				case TYPE_ICE_CANDIDATE: {
-					console.log(data?.payload, 'ICE CANDIDATE')
 					this.acceptIceCandidate(data?.payload)
 					break
 				}
@@ -178,10 +175,11 @@ class BrowsernetRTC {
 	 * 
 	 */
 	public createOffer() {
-		this.generateIceCandidate()
 		this.peerConnection.createOffer()
 			.then((offer) => {
-				this.peerConnection.setLocalDescription(offer)
+				this.peerConnection.setLocalDescription(
+					new RTCSessionDescription(offer)
+				)
 					.then(() => {
 						this.syncWithSSESession(
 							JSON.stringify({
@@ -192,6 +190,7 @@ class BrowsernetRTC {
 								}
 							})
 						)
+						this.generateIceCandidate()
 					})
 					.catch((error) => {
 						console.log(error)
@@ -206,11 +205,25 @@ class BrowsernetRTC {
 	 * 
 	 */
 	private createAnswer(payload: any) {
-		if (!payload?.id || !payload?.offer || !payload?.iceCandidate || payload?.iceCandidate.length === 0) {
+		if (!payload?.id || !payload?.offer) {
 			return
 		}
 
-		this.generateIceCandidate()
+		payload.offer.sdp = (
+			payload?.offer?.sdp
+		)
+			?.split('\n')
+			?.map((each: string) => {
+				each = each.trim()
+				if (each.includes('a=ice-pwd:') || each.includes('a=ice-ufrag:')) {
+					while (/\s/g.test(each)) {
+						each = each.replace(/\s/g, '+')
+					}
+				}
+				return each
+			})
+			?.join("\n")
+
 		this.peerConnection.setRemoteDescription(
 			new RTCSessionDescription(payload?.offer)
 		)
@@ -222,9 +235,6 @@ class BrowsernetRTC {
 						)
 							.then(() => {
 								this.connectionID = payload?.id
-								payload?.iceCandidate?.forEach(async (iceCandiate: RTCIceCandidate) => {
-									await this.peerConnection.addIceCandidate(payload?.iceCandidate)
-								})
 								this.syncWithSSESession(
 									JSON.stringify({
 										type: TYPE_ANWSER,
@@ -234,6 +244,7 @@ class BrowsernetRTC {
 										}
 									})
 								)
+								this.generateIceCandidate()
 							})
 							.catch((error) => {
 								console.log(error, 'Create Answer Set Local Description')
@@ -257,11 +268,34 @@ class BrowsernetRTC {
 			return
 		}
 
+		payload.answer.sdp = (
+			payload?.answer?.sdp
+		)
+			?.split('\n')
+			?.map((each: string) => {
+				each = each.trim()
+				if (each.includes('a=ice-pwd:') || each.includes('a=ice-ufrag:')) {
+					while (/\s/g.test(each)) {
+						each = each.replace(/\s/g, '+')
+					}
+				}
+				return each
+			})
+			?.join("\n")
+
 		this.peerConnection.setRemoteDescription(
 			new RTCSessionDescription(payload?.answer)
 		)
 			.then(() => {
 				this.connectionID = payload?.id
+				this.syncWithSSESession(
+					JSON.stringify({
+						type: TYPE_SHARE_ICE_CANDIDATE,
+						payload: {
+							id: ID,
+						}
+					})
+				)
 			})
 			.catch((error) => {
 				console.log(error, 'Accept Answer Set Remote Description')
@@ -274,17 +308,14 @@ class BrowsernetRTC {
 	private generateIceCandidate() {
 		this.peerConnection.addEventListener('icecandidate', event => {
 			if (event?.candidate) {
-				console.log(event?.candidate)
 				this.syncWithSSESession(
-					JSON.stringify(
-						{
-							type: TYPE_ICE_CANDIDATE,
-							payload: {
-								id: ID,
-								iceCandidate: event.candidate,
-							}
+					JSON.stringify({
+						type: TYPE_ICE_CANDIDATE,
+						payload: {
+							id: ID,
+							iceCandidate: event.candidate,
 						}
-					)
+					})
 				)
 			}
 		});
